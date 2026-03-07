@@ -73,6 +73,22 @@ app.MapPost("/api/domains/{id}/check", async (NetStateDbContext db, Guid id, Dom
 })
 .WithName("CheckDomain");
 
+app.MapPut("/api/domains/{id}", async (NetStateDbContext db, Guid id, MonitoredDomain updatedDomain) =>
+{
+    var domain = await db.Domains.FindAsync(id);
+    if (domain == null) return Results.NotFound();
+
+    domain.Name = updatedDomain.Name;
+    domain.Url = updatedDomain.Url;
+    domain.Expectation = updatedDomain.Expectation;
+    domain.ExpectedValue = updatedDomain.ExpectedValue;
+    domain.ExpectedHeaders = updatedDomain.ExpectedHeaders;
+
+    await db.SaveChangesAsync();
+    return Results.NoContent();
+})
+.WithName("UpdateDomain");
+
 app.Run();
 } catch (Exception ex) {
     Diagnostics.Bug("Critical server error", ex);

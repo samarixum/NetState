@@ -1,0 +1,44 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="using:NetState.Client.ViewModels"
+        mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="300"
+        x:Class="NetState.Client.Views.ExpectedHeadersWindow"
+        x:DataType="vm:ExpectedHeadersViewModel"
+        Title="Expected Response Headers"
+        Width="500" Height="400"
+        WindowStartupLocation="CenterOwner">
+
+    <DockPanel Margin="10">
+        <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="10" Margin="0,10,0,0">
+            <Button Content="OK" Command="{Binding SaveHeadersCommand}" HotKey="Enter" />
+        </StackPanel>
+
+        <Grid RowDefinitions="Auto, *">
+            <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="5" Margin="0,0,0,10">
+                <TextBox Text="{Binding NewHeaderKey}" Watermark="Header Name (e.g. Server)" Width="180"/>
+                <TextBox Text="{Binding NewHeaderValue}" Watermark="Value (e.g. nginx)" Width="180"/>
+                <Button Content="Add" Command="{Binding AddHeaderCommand}" />
+            </StackPanel>
+
+            <ListBox Grid.Row="1" ItemsSource="{Binding Headers}">
+                <ListBox.ItemTemplate>
+                    <DataTemplate x:DataType="vm:HeaderEntry">
+                        <DockPanel LastChildFill="True">
+                            <Button DockPanel.Dock="Right" Content="Remove" 
+                                    Command="{Binding $parent[ListBox].((vm:ExpectedHeadersViewModel)DataContext).RemoveHeaderCommand}" 
+                                    CommandParameter="{Binding}"
+                                    Foreground="Red"/>
+                            <TextBlock VerticalAlignment="Center">
+                                <Run Text="{Binding Key, Mode=OneWay}" FontWeight="Bold"/>
+                                <Run Text=": "/>
+                                <Run Text="{Binding Value, Mode=OneWay}"/>
+                            </TextBlock>
+                        </DockPanel>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+        </Grid>
+    </DockPanel>
+</Window>

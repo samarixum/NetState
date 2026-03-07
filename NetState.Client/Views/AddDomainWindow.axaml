@@ -4,28 +4,67 @@
         xmlns:models="using:NetState.Shared.Models"
         x:Class="NetState.Client.Views.AddDomainWindow"
         x:DataType="vm:AddDomainViewModel"
-        Title="Add Monitored Domain" 
-        Width="400" Height="450"
+        Title="Manage Monitored Domain" 
+        Width="500" Height="500"
         WindowStartupLocation="CenterOwner"
-        CanResize="False">
+        CanResize="True">
 
-    <StackPanel Margin="20" Spacing="15">
-        <TextBlock Text="Domain Name:" FontWeight="Bold"/>
-        <TextBox Text="{Binding DomainName}" Watermark="e.g. My Website" />
-
-        <TextBlock Text="Target URL:" FontWeight="Bold"/>
-        <TextBox Text="{Binding Url}" Watermark="e.g., https://mc.yggdrasil.au" />
-
-        <TextBlock Text="Expected Behavior:" FontWeight="Bold"/>
-        <ComboBox SelectedItem="{Binding SelectedCheckType}" ItemsSource="{Binding AvailableCheckTypes}" HorizontalAlignment="Stretch" />
-
-        <TextBlock Text="Expected Value:" FontWeight="Bold"/>
-        <TextBox Text="{Binding ExpectedValue}" Watermark="e.g., 200, or https://cloudflareaccess..." />
-
-        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="10" Margin="0,20,0,0">
+    <DockPanel>
+        <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="10" Margin="20">
             <Button Content="Cancel" Command="{Binding CancelCommand}" Width="80" HorizontalContentAlignment="Center"/>
             <Button Content="Save" Command="{Binding SaveCommand}" Width="80" HorizontalContentAlignment="Center" Background="#0078D7" Foreground="White"/>
         </StackPanel>
-    </StackPanel>
+
+        <TabControl Margin="10">
+            <TabItem Header="Add/Edit Domain">
+                <ScrollViewer>
+                    <StackPanel Margin="10" Spacing="15">
+                        <TextBlock Text="Domain Name:" FontWeight="Bold"/>
+                        <TextBox Text="{Binding DomainName}" Watermark="e.g. My Website" />
+
+                        <TextBlock Text="Target URL:" FontWeight="Bold"/>
+                        <TextBox Text="{Binding Url}" Watermark="e.g., https://mc.yggdrasil.au" />
+
+                        <TextBlock Text="Expected Behavior:" FontWeight="Bold"/>
+                        <ComboBox SelectedItem="{Binding SelectedCheckType}" ItemsSource="{Binding AvailableCheckTypes}" HorizontalAlignment="Stretch" />
+
+                        <TextBlock Text="Expected Value:" FontWeight="Bold"/>
+                        <TextBox Text="{Binding ExpectedValue}" Watermark="e.g., 200, or https://cloudflareaccess..." />
+
+                        <Button Content="Response Details / Headers..." 
+                                Command="{Binding OpenHeadersCommand}"
+                                HorizontalAlignment="Stretch"
+                                Margin="0,10,0,0"/>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <TabItem Header="Resolve Hosts">
+                <DockPanel Margin="10">
+                    <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="5" Margin="0,0,0,10">
+                        <TextBox Text="{Binding SearchDomain}" Watermark="e.g. google.com" Width="250"/>
+                        <Button Command="{Binding ResolveCommand}" Content="Resolve" Background="#0078D7" Foreground="White"/>
+                    </StackPanel>
+
+                    <DataGrid ItemsSource="{Binding ResolvedHosts}" IsReadOnly="True" GridLinesVisibility="All" BorderThickness="1" BorderBrush="Gray">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Host" Binding="{Binding Name}" Width="*"/>
+                            <DataGridTextColumn Header="Auto-URL" Binding="{Binding Url}" Width="*"/>
+                            <DataGridTemplateColumn Header="Action">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate x:DataType="models:MonitoredDomain">
+                                        <Button Content="Use" 
+                                                Command="{Binding $parent[Window].((vm:AddDomainViewModel)DataContext).SaveCommand}"
+                                                CommandParameter="{Binding}"
+                                                Padding="5,2" Margin="2"/>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </DockPanel>
+            </TabItem>
+        </TabControl>
+    </DockPanel>
 </Window>
 

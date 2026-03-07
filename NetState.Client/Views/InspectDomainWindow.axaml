@@ -1,0 +1,36 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:NetState.Client.ViewModels"
+        xmlns:scg="clr-namespace:System.Collections.Generic;assembly=System.Collections"
+        x:Class="NetState.Client.Views.InspectDomainWindow"
+        x:DataType="vm:InspectDomainViewModel"
+        Title="Inspect Domain Response" 
+        Width="600" Height="500"
+        WindowStartupLocation="CenterOwner">
+
+    <DockPanel Margin="10">
+        <TextBlock DockPanel.Dock="Top" Text="{Binding Domain.Name}" FontSize="18" FontWeight="Bold" Margin="0,0,0,10"/>
+        
+        <ScrollViewer>
+            <StackPanel Spacing="10">
+                <Expander Header="Response Headers" IsExpanded="False">
+                    <DataGrid ItemsSource="{Binding Headers}" AutoGenerateColumns="False" IsReadOnly="True" Height="200">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Header" Binding="{Binding Key}" Width="200"/>
+                            <DataGridTextColumn Header="Value" Binding="{Binding Value}" Width="*"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </Expander>
+
+                <Expander Header="Response Body" IsExpanded="False">
+                    <TextBox Text="{Binding ResponseBody}" 
+                             AcceptsReturn="True" 
+                             TextWrapping="Wrap" 
+                             IsReadOnly="True" 
+                             MinWidth="580"
+                             Margin="0,5,0,0"/>
+                </Expander>
+            </StackPanel>
+        </ScrollViewer>
+    </DockPanel>
+</Window>

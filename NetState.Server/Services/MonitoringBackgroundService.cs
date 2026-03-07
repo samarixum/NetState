@@ -8,32 +8,25 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.EntityFrameworkCore;
 using NetState.Server.Data;
 using NetState.Shared.Core;
-using Microsoft.Extensions.Logging;
 
 public class MonitoringBackgroundService : BackgroundService {
     private readonly IServiceProvider _serviceProvider;
     private readonly DomainChecker _domainChecker;
 
-    /* :: :: Constructors :: START :: */
-
     public MonitoringBackgroundService(
-        IServiceProvider serviceProvider,
+        IServiceProvider serviceProvider, 
         DomainChecker domainChecker
     ) {
         _serviceProvider = serviceProvider;
         _domainChecker = domainChecker;
     }
 
-    /* :: :: Constructors :: END :: */
-    // //
-    /* :: :: Methods :: START :: */
-
     protected override async Task ExecuteAsync(CancellationToken stoppingToken) {
         Diagnostics.Log("NetState Monitoring Service started.");
 
         while (!stoppingToken.IsCancellationRequested) {
             Diagnostics.Log("NetState: Running monitoring loop...");
-
+            
             using (var scope = _serviceProvider.CreateScope()) {
                 var dbContext = scope.ServiceProvider.GetRequiredService<NetStateDbContext>();
                 var domains = await dbContext.Domains.ToListAsync(stoppingToken);
@@ -48,6 +41,4 @@ public class MonitoringBackgroundService : BackgroundService {
             await Task.Delay(TimeSpan.FromMinutes(5), stoppingToken);
         }
     }
-
-    /* :: :: Methods :: END :: */
 }

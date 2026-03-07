@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 namespace NetState.Shared.Models
 {
@@ -26,6 +27,9 @@ namespace NetState.Shared.Models
         public string? ExpectedValue { get; set; } // e.g., redirect URL, HTML hash, or status code
         public CheckStatus LastStatus { get; set; } = CheckStatus.Unknown;
         public string? LastError { get; set; }
+        public string? LastResponseBody { get; set; }
+        public Dictionary<string, string>? LastResponseHeaders { get; set; }
+        public Dictionary<string, string>? ExpectedHeaders { get; set; }
         public DateTime? LastChecked { get; set; }
     }
 }

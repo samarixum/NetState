@@ -25,8 +25,10 @@ public class MainWindowViewModel : ReactiveObject {
         _apiClient = new MonitoringApiClient("http://localhost:5138/");
         LoadDomainsCommand = ReactiveCommand.CreateFromTask(LoadDomainsAsync);
         AddDomainCommand = ReactiveCommand.CreateFromTask(AddDomainAsync);
+        EditDomainCommand = ReactiveCommand.CreateFromTask<MonitoredDomain>(EditDomainAsync);
         DeleteDomainCommand = ReactiveCommand.CreateFromTask<MonitoredDomain>(DeleteDomainAsync);
         CheckDomainCommand = ReactiveCommand.CreateFromTask<MonitoredDomain>(CheckDomainAsync);
+        InspectDomainCommand = ReactiveCommand.CreateFromTask<MonitoredDomain>(InspectDomainAsync);
 
         // Auto-refresh every 30 seconds
         Observable.Interval(System.TimeSpan.FromSeconds(30))
@@ -58,8 +60,10 @@ public class MainWindowViewModel : ReactiveObject {
 
     public ReactiveCommand<System.Reactive.Unit, System.Reactive.Unit> LoadDomainsCommand { get; }
     public ReactiveCommand<System.Reactive.Unit, System.Reactive.Unit> AddDomainCommand { get; }
+    public ReactiveCommand<MonitoredDomain, System.Reactive.Unit> EditDomainCommand { get; }
     public ReactiveCommand<MonitoredDomain, System.Reactive.Unit> DeleteDomainCommand { get; }
     public ReactiveCommand<MonitoredDomain, System.Reactive.Unit> CheckDomainCommand { get; }
+    public ReactiveCommand<MonitoredDomain, System.Reactive.Unit> InspectDomainCommand { get; }
 
     /* :: :: Properties :: END :: */
     // //
@@ -97,6 +101,33 @@ public class MainWindowViewModel : ReactiveObject {
         }
     }
 
+    private async Task EditDomainAsync(MonitoredDomain domain) {
+        if (domain == null) return;
+        var dialog = new AddDomainWindow { ViewModel = new AddDomainViewModel(domain) };
+        if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop) {
+            var result = await dialog.ShowDialog<MonitoredDomain?>(desktop.MainWindow!);
+            if (result != null) {
+                IsBusy = true;
+                try {
+                    await _apiClient.UpdateDomainAsync(result);
+                    await LoadDomainsAsync();
+                } catch (Exception ex) {
+                    Diagnostics.Bug("EditDomainAsync error", ex);
+                } finally {
+                    IsBusy = false;
+                }
+            }
+        }
+    }
+
+    private async Task InspectDomainAsync(MonitoredDomain domain) {
+        if (domain == null) return;
+        var dialog = new InspectDomainWindow { ViewModel = new InspectDomainViewModel(domain) };
+        if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop) {
+            await dialog.ShowDialog(desktop.MainWindow!);
+        }
+    }
+
     private async Task DeleteDomainAsync(MonitoredDomain domain) {
         if (domain == null) {
             return;
@@ -131,6 +162,3 @@ public class MainWindowViewModel : ReactiveObject {
 
     /* :: :: Methods :: END :: */
 }
-
-
-

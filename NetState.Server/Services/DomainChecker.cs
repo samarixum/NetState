@@ -10,6 +10,8 @@ using NetState.Shared.Models;
 using NetState.Shared.Core;
 using AngleSharp;
 using AngleSharp.Html.Parser;
+using System.Linq;
+using System.Collections.Generic;
 
 public class DomainChecker {
     private readonly ILogger<DomainChecker> _logger;
@@ -31,6 +33,36 @@ public class DomainChecker {
             var response = await _httpClient.GetAsync(domain.Url, ct);
             domain.LastChecked = DateTime.UtcNow;
 
+            // Capture headers
+            var headersDictionary = new Dictionary<string, string>();
+            foreach (var header in response.Headers)
+            {
+                headersDictionary[header.Key] = string.Join(", ", header.Value);
+            }
+            foreach (var header in response.Content.Headers)
+            {
+                headersDictionary[header.Key] = string.Join(", ", header.Value);
+            }
+            domain.LastResponseHeaders = headersDictionary;
+
+            // Capture body
+            var htmlData = await response.Content.ReadAsStringAsync(ct);
+            domain.LastResponseBody = htmlData;
+
+            // Header Validation
+            if (domain.ExpectedHeaders != null && domain.ExpectedHeaders.Count > 0)
+            {
+                foreach (var expected in domain.ExpectedHeaders)
+                {
+                    if (!headersDictionary.TryGetValue(expected.Key, out var actualValue) || !actualValue.Contains(expected.Value))
+                    {
+                        domain.LastStatus = CheckStatus.Down;
+                        domain.LastError = $"Header mismatch. Expected {expected.Key}: {expected.Value}";
+                        goto HandleAlert;
+                    }
+                }
+            }
+
             switch (domain.Expectation) {
                 case ExpectationType.Redirect: {
                     if (response.StatusCode is System.Net.HttpStatusCode.Redirect or System.Net.HttpStatusCode.MovedPermanently or System.Net.HttpStatusCode.TemporaryRedirect or System.Net.HttpStatusCode.SeeOther) {
@@ -49,7 +81,7 @@ public class DomainChecker {
                     break;
                 }
                 case ExpectationType.HtmlHash: {
-                    var html = await response.Content.ReadAsStringAsync(ct);
+                    var html = domain.LastResponseBody ?? string.Empty;
                     var cleanHtml = await GetCleanHtmlAsync(html);
                     var hash = ComputeSha256Hash(cleanHtml);
 
@@ -79,6 +111,7 @@ public class DomainChecker {
             _logger.LogError(ex, "Error checking domain {DomainName}", domain.Name);
         }
 
+HandleAlert:
         // State Transition Logic
         if (previousStatus != domain.LastStatus) {
             if (domain.LastStatus == CheckStatus.Down) {

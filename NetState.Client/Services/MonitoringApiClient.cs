@@ -34,5 +34,10 @@ namespace NetState.Client.Services
         {
             await _httpClient.PostAsync($"api/domains/{id}/check", null);
         }
+
+        public async Task UpdateDomainAsync(MonitoredDomain domain)
+        {
+            await _httpClient.PutAsJsonAsync($"api/domains/{domain.Id}", domain);
+        }
     }
 }
