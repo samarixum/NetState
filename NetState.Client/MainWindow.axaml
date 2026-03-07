@@ -16,6 +16,7 @@
     <DockPanel>
         <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="10">
             <Button Command="{Binding LoadDomainsCommand}" Margin="5">Refresh</Button>
+            <Button Command="{Binding AddDomainCommand}" Margin="5" Background="#0078D7" Foreground="White">Add Domain</Button>
             <TextBlock Text="NetState Monitor" VerticalAlignment="Center" FontWeight="Bold" Margin="20,0" FontSize="18"/>
         </StackPanel>
 
