@@ -4,6 +4,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:vm="using:NetState.Client.ViewModels"
         xmlns:conv="using:NetState.Client.Converters"
+        xmlns:models="using:NetState.Shared.Models"
         mc:Ignorable="d" d:DesignWidth="900" d:DesignHeight="600"
         x:Class="NetState.Client.MainWindow"
         x:DataType="vm:MainWindowViewModel"
@@ -31,7 +32,7 @@
                 <DataGridTextColumn Header="URL" Binding="{Binding Url}" Width="*" />
                 <DataGridTemplateColumn Header="Status" Width="100">
                     <DataGridTemplateColumn.CellTemplate>
-                        <DataTemplate x:DataType="vm:MainWindowViewModel">
+                        <DataTemplate x:DataType="models:MonitoredDomain">
                             <Border CornerRadius="4" Padding="5,2" HorizontalAlignment="Center" 
                                     Background="{Binding LastStatus, Converter={StaticResource StatusToBrushConverter}}">
                                 <TextBlock Text="{Binding LastStatus}" Foreground="White" FontWeight="Bold" />
@@ -40,6 +41,18 @@
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
                 <DataGridTextColumn Header="Last Checked" Binding="{Binding LastChecked, StringFormat=\{0:HH:mm:ss\}}" Width="120" />
+                <DataGridTemplateColumn Header="Actions" Width="80">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate x:DataType="models:MonitoredDomain">
+                            <Button Content="Delete" 
+                                    Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).DeleteDomainCommand}"
+                                    CommandParameter="{Binding}"
+                                    Background="Crimson" Foreground="White"
+                                    Padding="10,2" CornerRadius="3"
+                                    HorizontalAlignment="Center" />
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
             </DataGrid.Columns>
         </DataGrid>
     </DockPanel>
