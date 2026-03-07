@@ -18,6 +18,7 @@ builder.Services.AddDbContext<NetStateDbContext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection") ?? "Data Source=netstate.db"));
 
 // Register Monitoring Service
+builder.Services.AddSingleton<DomainChecker>();
 builder.Services.AddHostedService<MonitoringBackgroundService>();
 
 var app = builder.Build();
@@ -59,6 +60,18 @@ app.MapDelete("/api/domains/{id}", async (NetStateDbContext db, Guid id) =>
     return Results.NoContent();
 })
 .WithName("DeleteDomain");
+
+app.MapPost("/api/domains/{id}/check", async (NetStateDbContext db, Guid id, DomainChecker checker, CancellationToken ct) =>
+{
+    var domain = await db.Domains.FindAsync(new object[] { id }, ct);
+    if (domain == null) return Results.NotFound();
+    
+    await checker.CheckDomainAsync(domain, ct);
+    await db.SaveChangesAsync(ct);
+    
+    return Results.Ok(domain);
+})
+.WithName("CheckDomain");
 
 app.Run();
 } catch (Exception ex) {

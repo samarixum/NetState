@@ -29,5 +29,10 @@ namespace NetState.Client.Services
         {
             await _httpClient.DeleteAsync($"api/domains/{id}");
         }
+
+        public async Task CheckDomainAsync(System.Guid id)
+        {
+            await _httpClient.PostAsync($"api/domains/{id}/check", null);
+        }
     }
 }

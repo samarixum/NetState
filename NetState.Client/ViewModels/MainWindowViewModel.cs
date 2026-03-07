@@ -26,9 +26,11 @@ public class MainWindowViewModel : ReactiveObject {
         LoadDomainsCommand = ReactiveCommand.CreateFromTask(LoadDomainsAsync);
         AddDomainCommand = ReactiveCommand.CreateFromTask(AddDomainAsync);
         DeleteDomainCommand = ReactiveCommand.CreateFromTask<MonitoredDomain>(DeleteDomainAsync);
+        CheckDomainCommand = ReactiveCommand.CreateFromTask<MonitoredDomain>(CheckDomainAsync);
 
         // Auto-refresh every 30 seconds
         Observable.Interval(System.TimeSpan.FromSeconds(30))
+            .Select(_ => Unit.Default)
             .ObserveOn(Avalonia.ReactiveUI.AvaloniaScheduler.Instance)
             .InvokeCommand(LoadDomainsCommand);
 
@@ -57,6 +59,7 @@ public class MainWindowViewModel : ReactiveObject {
     public ReactiveCommand<System.Reactive.Unit, System.Reactive.Unit> LoadDomainsCommand { get; }
     public ReactiveCommand<System.Reactive.Unit, System.Reactive.Unit> AddDomainCommand { get; }
     public ReactiveCommand<MonitoredDomain, System.Reactive.Unit> DeleteDomainCommand { get; }
+    public ReactiveCommand<MonitoredDomain, System.Reactive.Unit> CheckDomainCommand { get; }
 
     /* :: :: Properties :: END :: */
     // //
@@ -105,6 +108,22 @@ public class MainWindowViewModel : ReactiveObject {
             Domains.Remove(domain);
         } catch (Exception ex) {
             Diagnostics.Bug("DeleteDomainAsync error", ex);
+        } finally {
+            IsBusy = false;
+        }
+    }
+
+    private async Task CheckDomainAsync(MonitoredDomain domain) {
+        if (domain == null) {
+            return;
+        }
+
+        IsBusy = true;
+        try {
+            await _apiClient.CheckDomainAsync(domain.Id);
+            await LoadDomainsAsync();
+        } catch (Exception ex) {
+            Diagnostics.Bug("CheckDomainAsync error", ex);
         } finally {
             IsBusy = false;
         }

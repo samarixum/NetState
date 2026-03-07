@@ -43,15 +43,21 @@
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
                 <DataGridTextColumn Header="Last Checked" Binding="{Binding LastChecked, StringFormat=\{0:HH:mm:ss\}}" Width="120" />
-                <DataGridTemplateColumn Header="Actions" Width="80">
+                <DataGridTemplateColumn Header="Actions" Width="160">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate x:DataType="models:MonitoredDomain">
-                            <Button Content="Delete" 
-                                    Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).DeleteDomainCommand}"
-                                    CommandParameter="{Binding}"
-                                    Background="Crimson" Foreground="White"
-                                    Padding="10,2" CornerRadius="3"
-                                    HorizontalAlignment="Center" />
+                            <StackPanel Orientation="Horizontal" Spacing="5">
+                                <Button Content="Check" 
+                                        Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).CheckDomainCommand}"
+                                        CommandParameter="{Binding}"
+                                        Background="#0078D7" Foreground="White"
+                                        Padding="10,2" CornerRadius="3" />
+                                <Button Content="Delete" 
+                                        Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).DeleteDomainCommand}"
+                                        CommandParameter="{Binding}"
+                                        Background="Crimson" Foreground="White"
+                                        Padding="10,2" CornerRadius="3" />
+                            </StackPanel>
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
