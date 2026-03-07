@@ -51,7 +51,7 @@ public class AddDomainViewModel : ReactiveObject
                 !string.IsNullOrWhiteSpace(expected)
         );
 
-        SaveCommand = ReactiveCommand.Create(() => 
+        SaveCommand = ReactiveCommand.Create<MonitoredDomain?>(() => 
         {
             return new MonitoredDomain 
             {
@@ -63,6 +63,6 @@ public class AddDomainViewModel : ReactiveObject
         }, canSave);
 
         // Return null to indicate cancellation
-        CancelCommand = ReactiveCommand.Create(() => (MonitoredDomain?)null);
+        CancelCommand = ReactiveCommand.Create<MonitoredDomain?>(() => (MonitoredDomain?)null);
     }
 }

@@ -12,6 +12,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.EntityFrameworkCore;
 using NetState.Server.Data;
 using NetState.Shared.Models;
+using NetState.Shared.Core;
 using AngleSharp;
 using AngleSharp.Html.Parser;
 
@@ -40,10 +41,10 @@ public class MonitoringBackgroundService : BackgroundService {
     /* :: :: Methods :: START :: */
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken) {
-        _logger.LogInformation("NetState Monitoring Service started.");
+        Diagnostics.Log("NetState Monitoring Service started.");
 
         while (!stoppingToken.IsCancellationRequested) {
-            _logger.LogInformation("NetState: Running monitoring loop...");
+            Diagnostics.Log("NetState: Running monitoring loop...");
             
             using (var scope = _serviceProvider.CreateScope()) {
                 var dbContext = scope.ServiceProvider.GetRequiredService<NetStateDbContext>();
@@ -64,6 +65,7 @@ public class MonitoringBackgroundService : BackgroundService {
         var previousStatus = domain.LastStatus;
         
         try {
+            Diagnostics.Log($"Checking domain: {domain.Name} at {domain.Url}");
             var response = await _httpClient.GetAsync(domain.Url, ct);
             domain.LastChecked = DateTime.UtcNow;
 

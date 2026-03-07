@@ -2,12 +2,16 @@ using Microsoft.EntityFrameworkCore;
 using NetState.Server.Data;
 using NetState.Server.Services;
 using NetState.Shared.Models;
+using NetState.Shared.Core;
 
-var builder = WebApplication.CreateBuilder(args);
+Diagnostics.Initialize("Server");
 
-// Add services to the container.
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-builder.Services.AddOpenApi();
+try {
+    var builder = WebApplication.CreateBuilder(args);
+
+    // Add services to the container.
+    // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
+    builder.Services.AddOpenApi();
 
 // Register DbContext with SQLite
 builder.Services.AddDbContext<NetStateDbContext>(options =>
@@ -57,4 +61,9 @@ app.MapDelete("/api/domains/{id}", async (NetStateDbContext db, Guid id) =>
 .WithName("DeleteDomain");
 
 app.Run();
+} catch (Exception ex) {
+    Diagnostics.Bug("Critical server error", ex);
+} finally {
+    Diagnostics.Close();
+}
 

@@ -1,5 +1,7 @@
 namespace NetState.Client.ViewModels;
 
+using System;
+using System.Reactive;
 using System.Collections.ObjectModel;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
@@ -25,10 +27,10 @@ public class MainWindowViewModel : ReactiveObject {
         
         // Auto-refresh every 30 seconds
         Observable.Interval(System.TimeSpan.FromSeconds(30))
-            .ObserveOn(RxApp.MainThreadScheduler)
+            .ObserveOn(Avalonia.ReactiveUI.AvaloniaScheduler.Instance)
             .InvokeCommand(LoadDomainsCommand);
 
-        LoadDomainsCommand.Execute().Subscribe();
+        LoadDomainsCommand.Execute().Subscribe(_ => { });
     }
 
     /* :: :: Constructors :: END :: */
@@ -45,9 +47,9 @@ public class MainWindowViewModel : ReactiveObject {
         set => this.RaiseAndSetIfChanged(ref _isBusy, value);
     }
 
-    public IReactiveCommand LoadDomainsCommand { get; }
-    public IReactiveCommand AddDomainCommand { get; }
-    public IReactiveCommand DeleteDomainCommand { get; }
+    public ReactiveCommand<System.Reactive.Unit, System.Reactive.Unit> LoadDomainsCommand { get; }
+    public ReactiveCommand<System.Reactive.Unit, System.Reactive.Unit> AddDomainCommand { get; }
+    public ReactiveCommand<MonitoredDomain, System.Reactive.Unit> DeleteDomainCommand { get; }
 
     /* :: :: Properties :: END :: */
     // //
