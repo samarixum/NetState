@@ -1,0 +1,6 @@
+@NetState.Server_HostAddress = http://localhost:5138
+
+GET {{NetState.Server_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

@@ -1,0 +1,46 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="using:NetState.Client.ViewModels"
+        xmlns:conv="using:NetState.Client.Converters"
+        mc:Ignorable="d" d:DesignWidth="900" d:DesignHeight="600"
+        x:Class="NetState.Client.MainWindow"
+        x:DataType="vm:MainWindowViewModel"
+        Title="NetState Monitor">
+
+    <Window.Resources>
+        <conv:StatusToBrushConverter x:Key="StatusToBrushConverter"/>
+    </Window.Resources>
+
+    <DockPanel>
+        <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="10">
+            <Button Command="{Binding LoadDomainsCommand}" Margin="5">Refresh</Button>
+            <TextBlock Text="NetState Monitor" VerticalAlignment="Center" FontWeight="Bold" Margin="20,0" FontSize="18"/>
+        </StackPanel>
+
+        <ProgressBar DockPanel.Dock="Bottom" IsIndeterminate="True" 
+                     IsVisible="{Binding IsBusy}" Height="4"/>
+
+        <DataGrid Margin="10" ItemsSource="{Binding Domains}" 
+                  AutoGenerateColumns="False" IsReadOnly="True" 
+                  GridLinesVisibility="All" BorderThickness="1" BorderBrush="Gray">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="150" />
+                <DataGridTextColumn Header="URL" Binding="{Binding Url}" Width="*" />
+                <DataGridTemplateColumn Header="Status" Width="100">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate x:DataType="vm:MainWindowViewModel">
+                            <Border CornerRadius="4" Padding="5,2" HorizontalAlignment="Center" 
+                                    Background="{Binding LastStatus, Converter={StaticResource StatusToBrushConverter}}">
+                                <TextBlock Text="{Binding LastStatus}" Foreground="White" FontWeight="Bold" />
+                            </Border>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTextColumn Header="Last Checked" Binding="{Binding LastChecked, StringFormat=\{0:HH:mm:ss\}}" Width="120" />
+            </DataGrid.Columns>
+        </DataGrid>
+    </DockPanel>
+</Window>
+
