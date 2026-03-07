@@ -17,11 +17,7 @@
         <TextBox Text="{Binding Url}" Watermark="e.g., https://mc.yggdrasil.au" />
 
         <TextBlock Text="Expected Behavior:" FontWeight="Bold"/>
-        <ComboBox SelectedItem="{Binding SelectedCheckType}" HorizontalAlignment="Stretch">
-            <ComboBoxItem Content="{x:Static models:ExpectationType.HttpStatus}"/>
-            <ComboBoxItem Content="{x:Static models:ExpectationType.Redirect}"/>
-            <ComboBoxItem Content="{x:Static models:ExpectationType.HtmlHash}"/>
-        </ComboBox>
+        <ComboBox SelectedItem="{Binding SelectedCheckType}" ItemsSource="{Binding AvailableCheckTypes}" HorizontalAlignment="Stretch" />
 
         <TextBlock Text="Expected Value:" FontWeight="Bold"/>
         <TextBox Text="{Binding ExpectedValue}" Watermark="e.g., 200, or https://cloudflareaccess..." />
@@ -32,3 +28,4 @@
         </StackPanel>
     </StackPanel>
 </Window>
+

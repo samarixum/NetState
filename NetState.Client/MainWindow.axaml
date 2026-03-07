@@ -15,13 +15,15 @@
     </Window.Resources>
 
     <DockPanel>
-        <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="10">
+        <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="10">  
             <Button Command="{Binding LoadDomainsCommand}" Margin="5">Refresh</Button>
             <Button Command="{Binding AddDomainCommand}" Margin="5" Background="#0078D7" Foreground="White">Add Domain</Button>
             <TextBlock Text="NetState Monitor" VerticalAlignment="Center" FontWeight="Bold" Margin="20,0" FontSize="18"/>
+            <TextBlock Text="● Connected" IsVisible="{Binding IsConnected}" Foreground="Green" VerticalAlignment="Center" FontWeight="Bold" Margin="10,0"/>
+            <TextBlock Text="● Disconnected" IsVisible="{Binding !IsConnected}" Foreground="Red" VerticalAlignment="Center" FontWeight="Bold" Margin="10,0"/>
         </StackPanel>
 
-        <ProgressBar DockPanel.Dock="Bottom" IsIndeterminate="True" 
+        <ProgressBar DockPanel.Dock="Bottom" IsIndeterminate="True"
                      IsVisible="{Binding IsBusy}" Height="4"/>
 
         <DataGrid Margin="10" ItemsSource="{Binding Domains}" 
@@ -57,4 +59,5 @@
         </DataGrid>
     </DockPanel>
 </Window>
+
 

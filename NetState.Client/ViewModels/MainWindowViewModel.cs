@@ -5,6 +5,7 @@ using System.Reactive;
 using System.Collections.ObjectModel;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
+using NetState.Shared.Core;
 using NetState.Shared.Models;
 using NetState.Client.Services;
 using NetState.Client.Views;
@@ -16,15 +17,16 @@ public class MainWindowViewModel : ReactiveObject {
     private readonly MonitoringApiClient _apiClient;
     private ObservableCollection<MonitoredDomain> _domains = new();
     private bool _isBusy;
+    private bool _isConnected;
 
     /* :: :: Constructors :: START :: */
 
     public MainWindowViewModel() {
-        _apiClient = new MonitoringApiClient("http://localhost:5037/"); 
+        _apiClient = new MonitoringApiClient("http://localhost:5138/");
         LoadDomainsCommand = ReactiveCommand.CreateFromTask(LoadDomainsAsync);
         AddDomainCommand = ReactiveCommand.CreateFromTask(AddDomainAsync);
         DeleteDomainCommand = ReactiveCommand.CreateFromTask<MonitoredDomain>(DeleteDomainAsync);
-        
+
         // Auto-refresh every 30 seconds
         Observable.Interval(System.TimeSpan.FromSeconds(30))
             .ObserveOn(Avalonia.ReactiveUI.AvaloniaScheduler.Instance)
@@ -47,6 +49,11 @@ public class MainWindowViewModel : ReactiveObject {
         set => this.RaiseAndSetIfChanged(ref _isBusy, value);
     }
 
+    public bool IsConnected {
+        get => _isConnected;
+        set => this.RaiseAndSetIfChanged(ref _isConnected, value);
+    }
+
     public ReactiveCommand<System.Reactive.Unit, System.Reactive.Unit> LoadDomainsCommand { get; }
     public ReactiveCommand<System.Reactive.Unit, System.Reactive.Unit> AddDomainCommand { get; }
     public ReactiveCommand<MonitoredDomain, System.Reactive.Unit> DeleteDomainCommand { get; }
@@ -60,6 +67,10 @@ public class MainWindowViewModel : ReactiveObject {
         try {
             var domains = await _apiClient.GetDomainsAsync();
             Domains = new ObservableCollection<MonitoredDomain>(domains);
+            IsConnected = true;
+        } catch (Exception ex) {
+            IsConnected = false;
+            Diagnostics.Bug("LoadDomainsAsync error", ex);
         } finally {
             IsBusy = false;
         }
@@ -67,7 +78,6 @@ public class MainWindowViewModel : ReactiveObject {
 
     private async Task AddDomainAsync() {
         var dialog = new AddDomainWindow { ViewModel = new AddDomainViewModel() };
-        
         if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop) {
             var result = await dialog.ShowDialog<MonitoredDomain?>(desktop.MainWindow!);
             if (result != null) {
@@ -75,6 +85,8 @@ public class MainWindowViewModel : ReactiveObject {
                 try {
                     await _apiClient.CreateDomainAsync(result);
                     await LoadDomainsAsync();
+                } catch (Exception ex) {
+                    Diagnostics.Bug("AddDomainAsync error", ex);
                 } finally {
                     IsBusy = false;
                 }
@@ -91,6 +103,8 @@ public class MainWindowViewModel : ReactiveObject {
         try {
             await _apiClient.DeleteDomainAsync(domain.Id);
             Domains.Remove(domain);
+        } catch (Exception ex) {
+            Diagnostics.Bug("DeleteDomainAsync error", ex);
         } finally {
             IsBusy = false;
         }
@@ -98,3 +112,6 @@ public class MainWindowViewModel : ReactiveObject {
 
     /* :: :: Methods :: END :: */
 }
+
+
+
