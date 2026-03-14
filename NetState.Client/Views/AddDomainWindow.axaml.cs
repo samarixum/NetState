@@ -13,11 +13,11 @@ public partial class AddDomainWindow : ReactiveWindow<AddDomainViewModel> {
     public AddDomainWindow() {
         InitializeComponent();
 
-        // When Save or Cancel is clicked, close the window and return the result
         this.WhenActivated(action => {
             if (ViewModel != null) {
                 action(ViewModel.SaveCommand.Subscribe(Close));
                 action(ViewModel.CancelCommand.Subscribe(Close));
+                action(ViewModel.AddSelectedCommand.Subscribe(Close));
                 action(ViewModel.OpenHeadersInteraction.RegisterHandler(async interaction => {
                     await DoShowHeadersDialogAsync(interaction);
                 }));

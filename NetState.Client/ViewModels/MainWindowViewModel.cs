@@ -1,6 +1,7 @@
 namespace NetState.Client.ViewModels;
 
 using System;
+using System.Collections.Generic;
 using System.Reactive;
 using System.Collections.ObjectModel;
 using System.Reactive.Linq;
@@ -86,11 +87,13 @@ public class MainWindowViewModel : ReactiveObject {
     private async Task AddDomainAsync() {
         var dialog = new AddDomainWindow { ViewModel = new AddDomainViewModel() };
         if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop) {
-            var result = await dialog.ShowDialog<MonitoredDomain?>(desktop.MainWindow!);
+            var result = await dialog.ShowDialog<IEnumerable<MonitoredDomain>?>(desktop.MainWindow!);
             if (result != null) {
                 IsBusy = true;
                 try {
-                    await _apiClient.CreateDomainAsync(result);
+                    foreach (var domain in result) {
+                        await _apiClient.CreateDomainAsync(domain);
+                    }
                     await LoadDomainsAsync();
                 } catch (Exception ex) {
                     Diagnostics.Bug("AddDomainAsync error", ex);
@@ -105,11 +108,14 @@ public class MainWindowViewModel : ReactiveObject {
         if (domain == null) return;
         var dialog = new AddDomainWindow { ViewModel = new AddDomainViewModel(domain) };
         if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop) {
-            var result = await dialog.ShowDialog<MonitoredDomain?>(desktop.MainWindow!);
+            var result = await dialog.ShowDialog<IEnumerable<MonitoredDomain>?>(desktop.MainWindow!);
             if (result != null) {
                 IsBusy = true;
                 try {
-                    await _apiClient.UpdateDomainAsync(result);
+                    foreach (var updatedDomain in result) {
+                        await _apiClient.UpdateDomainAsync(updatedDomain);
+                        break; // Only process the first domain for an edit.
+                    }
                     await LoadDomainsAsync();
                 } catch (Exception ex) {
                     Diagnostics.Bug("EditDomainAsync error", ex);

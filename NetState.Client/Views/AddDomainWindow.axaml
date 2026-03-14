@@ -46,20 +46,19 @@
                         <Button Command="{Binding ResolveCommand}" Content="Resolve" Background="#0078D7" Foreground="White"/>
                     </StackPanel>
 
-                    <DataGrid ItemsSource="{Binding ResolvedHosts}" IsReadOnly="True" GridLinesVisibility="All" BorderThickness="1" BorderBrush="Gray">
+                    <Button DockPanel.Dock="Bottom" Content="Add Selected" Command="{Binding AddSelectedCommand}" Background="#0078D7" Foreground="White" Margin="0,10,0,0" HorizontalAlignment="Right"/>
+
+                    <DataGrid ItemsSource="{Binding ResolvedHosts}" IsReadOnly="False" GridLinesVisibility="All" BorderThickness="1" BorderBrush="Gray">
                         <DataGrid.Columns>
-                            <DataGridTextColumn Header="Host" Binding="{Binding Name}" Width="*"/>
-                            <DataGridTextColumn Header="Auto-URL" Binding="{Binding Url}" Width="*"/>
-                            <DataGridTemplateColumn Header="Action">
+                            <DataGridTemplateColumn Header="Select">
                                 <DataGridTemplateColumn.CellTemplate>
-                                    <DataTemplate x:DataType="models:MonitoredDomain">
-                                        <Button Content="Use" 
-                                                Command="{Binding $parent[Window].((vm:AddDomainViewModel)DataContext).SaveCommand}"
-                                                CommandParameter="{Binding}"
-                                                Padding="5,2" Margin="2"/>
+                                    <DataTemplate x:DataType="vm:SelectableHost">
+                                        <CheckBox IsChecked="{Binding IsSelected}" HorizontalAlignment="Center"/>
                                     </DataTemplate>
                                 </DataGridTemplateColumn.CellTemplate>
                             </DataGridTemplateColumn>
+                            <DataGridTextColumn Header="Host" Binding="{Binding Domain.Name}" IsReadOnly="True" Width="*"/>
+                            <DataGridTextColumn Header="Auto-URL" Binding="{Binding Domain.Url}" IsReadOnly="True" Width="*"/>
                         </DataGrid.Columns>
                     </DataGrid>
                 </DockPanel>
