@@ -5,73 +5,210 @@
         xmlns:vm="using:NetState.Client.ViewModels"
         xmlns:conv="using:NetState.Client.Converters"
         xmlns:models="using:NetState.Shared.Models"
-        mc:Ignorable="d" d:DesignWidth="900" d:DesignHeight="600"
+        mc:Ignorable="d" d:DesignWidth="1180" d:DesignHeight="760"
         x:Class="NetState.Client.MainWindow"
         x:DataType="vm:MainWindowViewModel"
-        Title="NetState Monitor">
+        Title="NetState Monitor"
+        Width="1200" Height="780">
 
     <Window.Resources>
         <conv:StatusToBrushConverter x:Key="StatusToBrushConverter"/>
+        <conv:DomainTypeLabelConverter x:Key="DomainTypeLabelConverter"/>
+        <conv:DomainSummaryConverter x:Key="DomainSummaryConverter"/>
+        <conv:DomainTooltipConverter x:Key="DomainTooltipConverter"/>
     </Window.Resources>
 
     <DockPanel>
-        <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="10">  
-            <Button Command="{Binding LoadDomainsCommand}" Margin="5">Refresh</Button>
-            <Button Command="{Binding AddDomainCommand}" Margin="5" Background="#0078D7" Foreground="White">Add Domain</Button>
-            <TextBlock Text="NetState Monitor" VerticalAlignment="Center" FontWeight="Bold" Margin="20,0" FontSize="18"/>
-            <TextBlock Text="● Connected" IsVisible="{Binding IsConnected}" Foreground="Green" VerticalAlignment="Center" FontWeight="Bold" Margin="10,0"/>
-            <TextBlock Text="● Disconnected" IsVisible="{Binding !IsConnected}" Foreground="Red" VerticalAlignment="Center" FontWeight="Bold" Margin="10,0"/>
-        </StackPanel>
+        <!-- Top Toolbar -->
+        <Border DockPanel.Dock="Top" BorderBrush="#33888888" BorderThickness="0,0,0,1" Padding="10,8">
+            <DockPanel LastChildFill="True">
+                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                    <TextBlock Text="{Binding GlobalSummaryText}" VerticalAlignment="Center" FontSize="12" Opacity="0.85"/>
+                    <TextBlock Text="● Connected" IsVisible="{Binding IsConnected}" Foreground="ForestGreen" VerticalAlignment="Center" FontWeight="Bold"/>
+                    <TextBlock Text="● Disconnected" IsVisible="{Binding !IsConnected}" Foreground="Crimson" VerticalAlignment="Center" FontWeight="Bold"/>
+                </StackPanel>
 
-        <ProgressBar DockPanel.Dock="Bottom" IsIndeterminate="True"
-                     IsVisible="{Binding IsBusy}" Height="4"/>
+                <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                    <TextBlock Text="NetState Monitor" VerticalAlignment="Center" FontWeight="Bold" FontSize="18" Margin="0,0,10,0"/>
+                    <Button Command="{Binding LoadDomainsCommand}" Content="Refresh"/>
+                    <Button Command="{Binding CheckAllCommand}" Content="Check All" Background="#0078D7" Foreground="White"/>
+                    <Button Command="{Binding AddDomainCommand}" Content="+ Add Entry" Background="#2E7D32" Foreground="White"/>
+                    <Button Command="{Binding ExpandAllCommand}" Content="Expand Hosts"/>
+                    <Button Command="{Binding CollapseAllCommand}" Content="Collapse Hosts"/>
+                    <TextBox Text="{Binding SearchQuery}" Watermark="Filter host, DNS type, expected, or misc..." Width="260"/>
+                </StackPanel>
+            </DockPanel>
+        </Border>
 
-        <DataGrid Margin="10" ItemsSource="{Binding Domains}" 
-                  AutoGenerateColumns="False" IsReadOnly="True" 
-                  GridLinesVisibility="All" BorderThickness="1" BorderBrush="Gray">
-            <DataGrid.Columns>
-                <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="150" />
-                <DataGridTextColumn Header="URL" Binding="{Binding Url}" Width="*" />
-                <DataGridTemplateColumn Header="Status" Width="100">
-                    <DataGridTemplateColumn.CellTemplate>
-                        <DataTemplate x:DataType="models:MonitoredDomain">
-                            <Border CornerRadius="4" Padding="5,2" HorizontalAlignment="Center" 
-                                    Background="{Binding LastStatus, Converter={StaticResource StatusToBrushConverter}}">
-                                <TextBlock Text="{Binding LastStatus}" Foreground="White" FontWeight="Bold" />
-                            </Border>
-                        </DataTemplate>
-                    </DataGridTemplateColumn.CellTemplate>
-                </DataGridTemplateColumn>
-                <DataGridTextColumn Header="Last Checked" Binding="{Binding LastChecked, StringFormat=\{0:HH:mm:ss\}}" Width="120" />
-                <DataGridTemplateColumn Header="Actions" Width="300">
-                    <DataGridTemplateColumn.CellTemplate>
-                        <DataTemplate x:DataType="models:MonitoredDomain">
-                            <StackPanel Orientation="Horizontal" Spacing="5">
-                                <Button Content="Inspect" 
-                                        Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).InspectDomainCommand}"
-                                        CommandParameter="{Binding}"
-                                        Padding="10,2" CornerRadius="3" />
-                                <Button Content="Check" 
-                                        Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).CheckDomainCommand}"
-                                        CommandParameter="{Binding}"
-                                        Background="#0078D7" Foreground="White"
-                                        Padding="10,2" CornerRadius="3" />
-                                <Button Content="Edit" 
-                                        Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).EditDomainCommand}"
-                                        CommandParameter="{Binding}"
-                                        Padding="10,2" CornerRadius="3" />
-                                <Button Content="Delete" 
-                                        Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).DeleteDomainCommand}"
-                                        CommandParameter="{Binding}"
-                                        Background="Crimson" Foreground="White"
-                                        Padding="10,2" CornerRadius="3" />
+        <ProgressBar DockPanel.Dock="Bottom" IsIndeterminate="True" IsVisible="{Binding IsBusy}" Height="4"/>
+
+        <!-- Grouped Main Hostnames -->
+        <ScrollViewer Margin="10">
+            <ItemsControl ItemsSource="{Binding MainHostnameGroups}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="vm:MainHostnameGroupViewModel">
+                        <Border BorderBrush="#44888888" BorderThickness="1" CornerRadius="6" Padding="12" Margin="0,0,0,14">
+                            <StackPanel Spacing="10">
+                                <!-- Main Hostname Header -->
+                                <DockPanel>
+                                    <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                                        <Button Content="Check Group"
+                                                Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).CheckGroupCommand}"
+                                                CommandParameter="{Binding MainHostname}"
+                                                Background="#0078D7" Foreground="White"
+                                                Padding="10,4" CornerRadius="4"/>
+                                        <Button Content="+ DNS"
+                                                Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).AddDnsForGroupCommand}"
+                                                CommandParameter="{Binding MainHostname}"
+                                                Padding="10,4" CornerRadius="4"/>
+                                        <Button Content="+ Host"
+                                                Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).AddHostForGroupCommand}"
+                                                CommandParameter="{Binding MainHostname}"
+                                                Padding="10,4" CornerRadius="4"/>
+                                    </StackPanel>
+
+                                    <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                                        <Border CornerRadius="4" Padding="8,3"
+                                                Background="{Binding AggregateStatus, Converter={StaticResource StatusToBrushConverter}}">
+                                            <TextBlock Text="{Binding AggregateStatus}" Foreground="White" FontWeight="Bold" FontSize="12"/>
+                                        </Border>
+                                        <TextBlock Text="{Binding MainHostname}" FontSize="17" FontWeight="Bold" VerticalAlignment="Center"/>
+                                        <TextBlock Text="{Binding SummaryText}" FontSize="12" Opacity="0.8" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </DockPanel>
+
+                                <!-- DNS Entries placed directly under Main Hostname -->
+                                <StackPanel Spacing="4" IsVisible="{Binding HasDnsEntries}" Margin="8,0,0,0">
+                                    <TextBlock Text="{Binding DnsSectionHeader}" FontWeight="SemiBold" FontSize="13" Opacity="0.9"/>
+
+                                    <Border BorderBrush="#33888888" BorderThickness="1" CornerRadius="4" Padding="6">
+                                        <StackPanel Spacing="4">
+                                            <Grid ColumnDefinitions="190, 210, 125, *, 85, 70, 240" ColumnSpacing="8" Margin="2,0,2,4">
+                                                <TextBlock Grid.Column="0" Text="Entry" FontWeight="Bold" FontSize="11" Opacity="0.7"/>
+                                                <TextBlock Grid.Column="1" Text="FQDN / Host" FontWeight="Bold" FontSize="11" Opacity="0.7"/>
+                                                <TextBlock Grid.Column="2" Text="Type" FontWeight="Bold" FontSize="11" Opacity="0.7"/>
+                                                <TextBlock Grid.Column="3" Text="Expected / Misc / Error" FontWeight="Bold" FontSize="11" Opacity="0.7"/>
+                                                <TextBlock Grid.Column="4" Text="Status" FontWeight="Bold" FontSize="11" Opacity="0.7" HorizontalAlignment="Center"/>
+                                                <TextBlock Grid.Column="5" Text="Checked" FontWeight="Bold" FontSize="11" Opacity="0.7" HorizontalAlignment="Center"/>
+                                                <TextBlock Grid.Column="6" Text="Actions" FontWeight="Bold" FontSize="11" Opacity="0.7"/>
+                                            </Grid>
+
+                                            <ItemsControl ItemsSource="{Binding DnsEntries}">
+                                                <ItemsControl.ItemTemplate>
+                                                    <DataTemplate x:DataType="models:MonitoredDomain">
+                                                        <Border BorderBrush="#22888888" BorderThickness="0,1,0,0" Padding="2,5"
+                                                                ToolTip.Tip="{Binding ., Converter={StaticResource DomainTooltipConverter}}">
+                                                            <Grid ColumnDefinitions="190, 210, 125, *, 85, 70, 240" ColumnSpacing="8">
+                                                                <TextBlock Grid.Column="0" Text="{Binding Name}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" FontWeight="Medium"/>
+                                                                <TextBlock Grid.Column="1" Text="{Binding Url}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" FontSize="12"/>
+                                                                <TextBlock Grid.Column="2" Text="{Binding ., Converter={StaticResource DomainTypeLabelConverter}}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" FontSize="12"/>
+                                                                <TextBlock Grid.Column="3" Text="{Binding ., Converter={StaticResource DomainSummaryConverter}}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" FontSize="11" Opacity="0.85"/>
+                                                                <Border Grid.Column="4" CornerRadius="4" Padding="6,2" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                                        Background="{Binding LastStatus, Converter={StaticResource StatusToBrushConverter}}">
+                                                                    <TextBlock Text="{Binding LastStatus}" Foreground="White" FontWeight="Bold" FontSize="11"/>
+                                                                </Border>
+                                                                <TextBlock Grid.Column="5" Text="{Binding LastChecked, StringFormat=\{0:HH:mm:ss\}}" VerticalAlignment="Center" HorizontalAlignment="Center" FontSize="11"/>
+                                                                <StackPanel Grid.Column="6" Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
+                                                                    <Button Content="Inspect"
+                                                                            Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).InspectDomainCommand}"
+                                                                            CommandParameter="{Binding}"
+                                                                            Padding="7,2" FontSize="11" CornerRadius="3"/>
+                                                                    <Button Content="Check"
+                                                                            Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).CheckDomainCommand}"
+                                                                            CommandParameter="{Binding}"
+                                                                            Background="#0078D7" Foreground="White"
+                                                                            Padding="7,2" FontSize="11" CornerRadius="3"/>
+                                                                    <Button Content="Edit"
+                                                                            Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).EditDomainCommand}"
+                                                                            CommandParameter="{Binding}"
+                                                                            Padding="7,2" FontSize="11" CornerRadius="3"/>
+                                                                    <Button Content="Delete"
+                                                                            Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).DeleteDomainCommand}"
+                                                                            CommandParameter="{Binding}"
+                                                                            Background="Crimson" Foreground="White"
+                                                                            Padding="7,2" FontSize="11" CornerRadius="3"/>
+                                                                </StackPanel>
+                                                            </Grid>
+                                                        </Border>
+                                                    </DataTemplate>
+                                                </ItemsControl.ItemTemplate>
+                                            </ItemsControl>
+                                        </StackPanel>
+                                    </Border>
+                                </StackPanel>
+
+                                <!-- Hosts inside a dropdown under Main Hostname -->
+                                <Expander Header="{Binding HostsDropdownHeader}"
+                                          IsExpanded="{Binding IsHostsExpanded}"
+                                          HorizontalAlignment="Stretch"
+                                          Margin="8,0,0,0">
+                                    <StackPanel Spacing="4" Margin="0,4,0,0">
+                                        <TextBlock Text="No hosts registered under this main hostname."
+                                                   IsVisible="{Binding !HasHostEntries}"
+                                                   FontStyle="Italic"
+                                                   FontSize="12"
+                                                   Opacity="0.7"
+                                                   Margin="4"/>
+
+                                        <StackPanel Spacing="4" IsVisible="{Binding HasHostEntries}">
+                                            <Grid ColumnDefinitions="190, 210, 125, *, 85, 70, 240" ColumnSpacing="8" Margin="2,0,2,4">
+                                                <TextBlock Grid.Column="0" Text="Host Name" FontWeight="Bold" FontSize="11" Opacity="0.7"/>
+                                                <TextBlock Grid.Column="1" Text="Target URL" FontWeight="Bold" FontSize="11" Opacity="0.7"/>
+                                                <TextBlock Grid.Column="2" Text="Check" FontWeight="Bold" FontSize="11" Opacity="0.7"/>
+                                                <TextBlock Grid.Column="3" Text="Expected / Misc / Error" FontWeight="Bold" FontSize="11" Opacity="0.7"/>
+                                                <TextBlock Grid.Column="4" Text="Status" FontWeight="Bold" FontSize="11" Opacity="0.7" HorizontalAlignment="Center"/>
+                                                <TextBlock Grid.Column="5" Text="Checked" FontWeight="Bold" FontSize="11" Opacity="0.7" HorizontalAlignment="Center"/>
+                                                <TextBlock Grid.Column="6" Text="Actions" FontWeight="Bold" FontSize="11" Opacity="0.7"/>
+                                            </Grid>
+
+                                            <ItemsControl ItemsSource="{Binding HostEntries}">
+                                                <ItemsControl.ItemTemplate>
+                                                    <DataTemplate x:DataType="models:MonitoredDomain">
+                                                        <Border BorderBrush="#22888888" BorderThickness="0,1,0,0" Padding="2,5"
+                                                                ToolTip.Tip="{Binding ., Converter={StaticResource DomainTooltipConverter}}">
+                                                            <Grid ColumnDefinitions="190, 210, 125, *, 85, 70, 240" ColumnSpacing="8">
+                                                                <TextBlock Grid.Column="0" Text="{Binding Name}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" FontWeight="Medium"/>
+                                                                <TextBlock Grid.Column="1" Text="{Binding Url}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" FontSize="12"/>
+                                                                <TextBlock Grid.Column="2" Text="{Binding ., Converter={StaticResource DomainTypeLabelConverter}}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" FontSize="12"/>
+                                                                <TextBlock Grid.Column="3" Text="{Binding ., Converter={StaticResource DomainSummaryConverter}}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" FontSize="11" Opacity="0.85"/>
+                                                                <Border Grid.Column="4" CornerRadius="4" Padding="6,2" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                                        Background="{Binding LastStatus, Converter={StaticResource StatusToBrushConverter}}">
+                                                                    <TextBlock Text="{Binding LastStatus}" Foreground="White" FontWeight="Bold" FontSize="11"/>
+                                                                </Border>
+                                                                <TextBlock Grid.Column="5" Text="{Binding LastChecked, StringFormat=\{0:HH:mm:ss\}}" VerticalAlignment="Center" HorizontalAlignment="Center" FontSize="11"/>
+                                                                <StackPanel Grid.Column="6" Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
+                                                                    <Button Content="Inspect"
+                                                                            Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).InspectDomainCommand}"
+                                                                            CommandParameter="{Binding}"
+                                                                            Padding="7,2" FontSize="11" CornerRadius="3"/>
+                                                                    <Button Content="Check"
+                                                                            Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).CheckDomainCommand}"
+                                                                            CommandParameter="{Binding}"
+                                                                            Background="#0078D7" Foreground="White"
+                                                                            Padding="7,2" FontSize="11" CornerRadius="3"/>
+                                                                    <Button Content="Edit"
+                                                                            Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).EditDomainCommand}"
+                                                                            CommandParameter="{Binding}"
+                                                                            Padding="7,2" FontSize="11" CornerRadius="3"/>
+                                                                    <Button Content="Delete"
+                                                                            Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).DeleteDomainCommand}"
+                                                                            CommandParameter="{Binding}"
+                                                                            Background="Crimson" Foreground="White"
+                                                                            Padding="7,2" FontSize="11" CornerRadius="3"/>
+                                                                </StackPanel>
+                                                            </Grid>
+                                                        </Border>
+                                                    </DataTemplate>
+                                                </ItemsControl.ItemTemplate>
+                                            </ItemsControl>
+                                        </StackPanel>
+                                    </StackPanel>
+                                </Expander>
                             </StackPanel>
-                        </DataTemplate>
-                    </DataGridTemplateColumn.CellTemplate>
-                </DataGridTemplateColumn>
-            </DataGrid.Columns>
-        </DataGrid>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </ScrollViewer>
     </DockPanel>
 </Window>
-
-

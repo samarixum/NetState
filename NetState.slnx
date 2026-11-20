@@ -2,4 +2,5 @@
   <Project Path="NetState.Client/NetState.Client.csproj" />
   <Project Path="NetState.Server/NetState.Server.csproj" />
   <Project Path="NetState.Shared/NetState.Shared.csproj" />
+  <Project Path="NetState.Tests/NetState.Tests.csproj" />
 </Solution>

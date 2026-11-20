@@ -20,4 +20,8 @@
     <ProjectReference Include="..\NetState.Shared\NetState.Shared.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <InternalsVisibleTo Include="NetState.Tests" />
+  </ItemGroup>
+
 </Project>

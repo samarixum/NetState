@@ -4,61 +4,113 @@
         xmlns:models="using:NetState.Shared.Models"
         x:Class="NetState.Client.Views.AddDomainWindow"
         x:DataType="vm:AddDomainViewModel"
-        Title="Manage Monitored Domain" 
-        Width="500" Height="500"
+        Title="Manage Monitored Entry"
+        Width="600" Height="640"
         WindowStartupLocation="CenterOwner"
         CanResize="True">
 
     <DockPanel>
-        <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="10" Margin="20">
-            <Button Content="Cancel" Command="{Binding CancelCommand}" Width="80" HorizontalContentAlignment="Center"/>
-            <Button Content="Save" Command="{Binding SaveCommand}" Width="80" HorizontalContentAlignment="Center" Background="#0078D7" Foreground="White"/>
+        <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="10" Margin="16">
+            <Button Content="Cancel" Command="{Binding CancelCommand}" Width="90" HorizontalContentAlignment="Center"/>
+            <Button Content="Save" Command="{Binding SaveCommand}" Width="90" HorizontalContentAlignment="Center" Background="#0078D7" Foreground="White"/>
         </StackPanel>
 
         <TabControl Margin="10">
-            <TabItem Header="Add/Edit Domain">
+            <TabItem Header="Add / Edit Entry">
                 <ScrollViewer>
-                    <StackPanel Margin="10" Spacing="15">
-                        <TextBlock Text="Domain Name:" FontWeight="Bold"/>
-                        <TextBox Text="{Binding DomainName}" Watermark="e.g. My Website" />
+                    <StackPanel Margin="10" Spacing="10">
+                        <TextBlock Text="Entry Name:" FontWeight="Bold"/>
+                        <TextBox Text="{Binding DomainName}" Watermark="e.g. Anime Dimension API or TXT @ SPF"/>
 
-                        <TextBlock Text="Target URL:" FontWeight="Bold"/>
-                        <TextBox Text="{Binding Url}" Watermark="e.g., https://mc.yggdrasil.au" />
+                        <Grid ColumnDefinitions="*, 180" ColumnSpacing="10">
+                            <StackPanel Grid.Column="0" Spacing="4">
+                                <TextBlock Text="Main Hostname (Grouping Root):" FontWeight="Bold"/>
+                                <TextBox Text="{Binding MainHostname}" Watermark="e.g. anime-dimension.com"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="1" Spacing="4">
+                                <TextBlock Text="Placement Section:" FontWeight="Bold"/>
+                                <ComboBox SelectedItem="{Binding SelectedEntryKind}" ItemsSource="{Binding AvailableEntryKinds}" HorizontalAlignment="Stretch"/>
+                            </StackPanel>
+                        </Grid>
+
+                        <TextBlock Text="Target URL or DNS FQDN:" FontWeight="Bold"/>
+                        <TextBox Text="{Binding Url}" Watermark="e.g. https://api.anime-dimension.com or _dmarc.yggdrasil.au"/>
 
                         <TextBlock Text="Expected Behavior:" FontWeight="Bold"/>
-                        <ComboBox SelectedItem="{Binding SelectedCheckType}" ItemsSource="{Binding AvailableCheckTypes}" HorizontalAlignment="Stretch" />
+                        <ComboBox SelectedItem="{Binding SelectedCheckType}" ItemsSource="{Binding AvailableCheckTypes}" HorizontalAlignment="Stretch"/>
 
-                        <TextBlock Text="Expected Value:" FontWeight="Bold"/>
-                        <TextBox Text="{Binding ExpectedValue}" Watermark="e.g., 200, or https://cloudflareaccess..." />
+                        <StackPanel IsVisible="{Binding IsDnsRecordMode}" Spacing="8" Margin="0,2,0,2">
+                            <TextBlock Text="DNS Record Type (Preset or Custom TYPEn):" FontWeight="Bold"/>
+                            <Grid ColumnDefinitions="180, *" ColumnSpacing="8">
+                                <ComboBox Grid.Column="0"
+                                          SelectedItem="{Binding SelectedDnsTypePreset}"
+                                          ItemsSource="{Binding AvailableDnsTypePresets}"
+                                          PlaceholderText="Presets..."
+                                          HorizontalAlignment="Stretch"/>
+                                <TextBox Grid.Column="1"
+                                         Text="{Binding DnsRecordType}"
+                                         Watermark="e.g. A, AAAA, CNAME, MX, TXT, SRV, NS, CAA, SOA, HTTPS, TYPE65"/>
+                            </Grid>
 
-                        <Button Content="Response Details / Headers..." 
-                                Command="{Binding OpenHeadersCommand}"
-                                HorizontalAlignment="Stretch"
-                                Margin="0,10,0,0"/>
+                            <StackPanel Orientation="Horizontal" Spacing="20">
+                                <CheckBox Content="Strict Exact-Set Check (fail on extra records)" IsChecked="{Binding StrictDnsCheck}"/>
+                                <CheckBox Content="Allow DNS Absent (expect 0 records / NXDOMAIN)" IsChecked="{Binding AllowDnsAbsent}"/>
+                            </StackPanel>
+                        </StackPanel>
+
+                        <TextBlock Text="Expected Value (one DNS record per line for DNS checks):" FontWeight="Bold"/>
+                        <TextBox Text="{Binding ExpectedValue}"
+                                 Watermark="{Binding ExpectedValueWatermark}"
+                                 AcceptsReturn="True"
+                                 TextWrapping="Wrap"
+                                 MinHeight="72"
+                                 MaxHeight="140"/>
+
+                        <Grid ColumnDefinitions="*, *" ColumnSpacing="10" Margin="0,6,0,0">
+                            <Button Grid.Column="0"
+                                    Content="{Binding HeadersButtonLabel}"
+                                    Command="{Binding OpenHeadersCommand}"
+                                    HorizontalAlignment="Stretch"
+                                    HorizontalContentAlignment="Center"/>
+                            <Button Grid.Column="1"
+                                    Content="{Binding MiscDnsButtonLabel}"
+                                    Command="{Binding OpenMiscDnsValuesCommand}"
+                                    HorizontalAlignment="Stretch"
+                                    HorizontalContentAlignment="Center"/>
+                        </Grid>
                     </StackPanel>
                 </ScrollViewer>
             </TabItem>
 
-            <TabItem Header="Resolve Hosts">
+            <TabItem Header="Discover Hosts &amp; DNS">
                 <DockPanel Margin="10">
-                    <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="5" Margin="0,0,0,10">
-                        <TextBox Text="{Binding SearchDomain}" Watermark="e.g. google.com" Width="250"/>
-                        <Button Command="{Binding ResolveCommand}" Content="Resolve" Background="#0078D7" Foreground="White"/>
+                    <StackPanel DockPanel.Dock="Top" Spacing="6" Margin="0,0,0,10">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <TextBox Text="{Binding SearchDomain}" Watermark="e.g. yggdrasil.au" Width="300"/>
+                            <Button Command="{Binding ResolveCommand}" Content="Discover" Background="#0078D7" Foreground="White"/>
+                        </StackPanel>
+                        <TextBlock Text="{Binding DiscoverySummary}" FontSize="12" TextWrapping="Wrap" Opacity="0.85"/>
                     </StackPanel>
 
-                    <Button DockPanel.Dock="Bottom" Content="Add Selected" Command="{Binding AddSelectedCommand}" Background="#0078D7" Foreground="White" Margin="0,10,0,0" HorizontalAlignment="Right"/>
+                    <Button DockPanel.Dock="Bottom"
+                            Content="Add Selected"
+                            Command="{Binding AddSelectedCommand}"
+                            Background="#0078D7" Foreground="White"
+                            Margin="0,10,0,0"
+                            HorizontalAlignment="Right"/>
 
                     <DataGrid ItemsSource="{Binding ResolvedHosts}" IsReadOnly="False" GridLinesVisibility="All" BorderThickness="1" BorderBrush="Gray">
                         <DataGrid.Columns>
-                            <DataGridTemplateColumn Header="Select">
+                            <DataGridTemplateColumn Header="Select" Width="60">
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate x:DataType="vm:SelectableHost">
                                         <CheckBox IsChecked="{Binding IsSelected}" HorizontalAlignment="Center"/>
                                     </DataTemplate>
                                 </DataGridTemplateColumn.CellTemplate>
                             </DataGridTemplateColumn>
-                            <DataGridTextColumn Header="Host" Binding="{Binding Domain.Name}" IsReadOnly="True" Width="*"/>
-                            <DataGridTextColumn Header="Auto-URL" Binding="{Binding Domain.Url}" IsReadOnly="True" Width="*"/>
+                            <DataGridTextColumn Header="Name" Binding="{Binding Domain.Name}" IsReadOnly="True" Width="170" x:DataType="vm:SelectableHost"/>
+                            <DataGridTextColumn Header="Kind" Binding="{Binding Domain.EntryKind}" IsReadOnly="True" Width="90" x:DataType="vm:SelectableHost"/>
+                            <DataGridTextColumn Header="Target" Binding="{Binding Domain.Url}" IsReadOnly="True" Width="*" x:DataType="vm:SelectableHost"/>
                         </DataGrid.Columns>
                     </DataGrid>
                 </DockPanel>
@@ -66,4 +118,3 @@
         </TabControl>
     </DockPanel>
 </Window>
-

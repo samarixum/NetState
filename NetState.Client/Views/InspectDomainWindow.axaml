@@ -1,33 +1,77 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="using:NetState.Client.ViewModels"
-        xmlns:scg="clr-namespace:System.Collections.Generic;assembly=System.Collections"
+        xmlns:conv="using:NetState.Client.Converters"
         x:Class="NetState.Client.Views.InspectDomainWindow"
         x:DataType="vm:InspectDomainViewModel"
-        Title="Inspect Domain Response" 
-        Width="600" Height="500"
+        Title="Inspect Entry Details"
+        Width="720" Height="620"
         WindowStartupLocation="CenterOwner">
 
-    <DockPanel Margin="10">
-        <TextBlock DockPanel.Dock="Top" Text="{Binding Domain.Name}" FontSize="18" FontWeight="Bold" Margin="0,0,0,10"/>
-        
+    <Window.Resources>
+        <conv:StatusToBrushConverter x:Key="StatusToBrushConverter"/>
+    </Window.Resources>
+
+    <DockPanel Margin="12">
+        <StackPanel DockPanel.Dock="Top" Spacing="6" Margin="0,0,0,10">
+            <DockPanel>
+                <Border DockPanel.Dock="Right"
+                        CornerRadius="4"
+                        Padding="8,3"
+                        VerticalAlignment="Center"
+                        Background="{Binding Domain.LastStatus, Converter={StaticResource StatusToBrushConverter}}">
+                    <TextBlock Text="{Binding Domain.LastStatus}" Foreground="White" FontWeight="Bold"/>
+                </Border>
+                <TextBlock Text="{Binding Domain.Name}" FontSize="18" FontWeight="Bold" VerticalAlignment="Center"/>
+            </DockPanel>
+            <TextBlock Text="{Binding Domain.Url}" Opacity="0.8" FontSize="13"/>
+            <TextBlock Text="{Binding ConfigurationSummary}" FontSize="12" TextWrapping="Wrap"/>
+            <TextBlock Text="{Binding LastErrorText, StringFormat=Last Error: {0}}" FontSize="12" Foreground="OrangeRed" TextWrapping="Wrap"/>
+        </StackPanel>
+
         <ScrollViewer>
             <StackPanel Spacing="10">
-                <Expander Header="Response Headers" IsExpanded="False">
-                    <DataGrid ItemsSource="{Binding Headers}" AutoGenerateColumns="False" IsReadOnly="True" Height="200">
+                <Expander Header="Expected Value" IsExpanded="False" HorizontalAlignment="Stretch">
+                    <TextBox Text="{Binding ExpectedValueText, Mode=OneWay}"
+                             AcceptsReturn="True"
+                             TextWrapping="Wrap"
+                             IsReadOnly="True"
+                             MaxHeight="160"/>
+                </Expander>
+
+                <Expander Header="{Binding MiscDnsHeader}" IsExpanded="True" HorizontalAlignment="Stretch">
+                    <DataGrid ItemsSource="{Binding MiscDnsRows}" AutoGenerateColumns="False" IsReadOnly="True" MaxHeight="180">
                         <DataGrid.Columns>
-                            <DataGridTextColumn Header="Header" Binding="{Binding Key}" Width="200"/>
-                            <DataGridTextColumn Header="Value" Binding="{Binding Value}" Width="*"/>
+                            <DataGridTextColumn Header="Key" Binding="{Binding Key}" Width="190" x:DataType="vm:KeyValueRow"/>
+                            <DataGridTextColumn Header="Value" Binding="{Binding Value}" Width="*" x:DataType="vm:KeyValueRow"/>
                         </DataGrid.Columns>
                     </DataGrid>
                 </Expander>
 
-                <Expander Header="Response Body" IsExpanded="False">
-                    <TextBox Text="{Binding ResponseBody}" 
-                             AcceptsReturn="True" 
-                             TextWrapping="Wrap" 
-                             IsReadOnly="True" 
-                             MinWidth="580"
+                <Expander Header="{Binding ExpectedHeadersTitle}" IsExpanded="False" HorizontalAlignment="Stretch">
+                    <DataGrid ItemsSource="{Binding ExpectedHeaderRows}" AutoGenerateColumns="False" IsReadOnly="True" MaxHeight="160">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Header" Binding="{Binding Key}" Width="190" x:DataType="vm:KeyValueRow"/>
+                            <DataGridTextColumn Header="Expected Value" Binding="{Binding Value}" Width="*" x:DataType="vm:KeyValueRow"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </Expander>
+
+                <Expander Header="{Binding ResponseHeadersTitle}" IsExpanded="True" HorizontalAlignment="Stretch">
+                    <DataGrid ItemsSource="{Binding Headers}" AutoGenerateColumns="False" IsReadOnly="True" MaxHeight="200">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Header / Metadata" Binding="{Binding Key}" Width="190" x:DataType="vm:KeyValueRow"/>
+                            <DataGridTextColumn Header="Value" Binding="{Binding Value}" Width="*" x:DataType="vm:KeyValueRow"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </Expander>
+
+                <Expander Header="Response Body / DNS Results" IsExpanded="True" HorizontalAlignment="Stretch">
+                    <TextBox Text="{Binding ResponseBody, Mode=OneWay}"
+                             AcceptsReturn="True"
+                             TextWrapping="Wrap"
+                             IsReadOnly="True"
+                             MaxHeight="280"
                              Margin="0,5,0,0"/>
                 </Expander>
             </StackPanel>
